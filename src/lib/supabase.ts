@@ -6,40 +6,34 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export type Course = {
-  id: string;
+  url: string;
   titel: string;
-  slug: string;
-  institut_id: string;
-  institut_name?: string;
+  institut: string;
   kategorie: string;
   abschluss: string;
   regelstudienzeit: string;
-  ects?: string;
-  gesamtkosten?: string;
-  kosten_jahr?: string;
-  kosten_monat?: string;
+  ects: string;
+  gesamtkosten: string;
+  kosten_jahr: string;
+  kosten_monat: string;
   studienform: string;
-  plaetze?: string;
+  plaetze: string;
   sprache: string;
   standort: string;
   studienbeginn: string;
   website_url: string;
   beschreibung_generiert: string;
-  image_url?: string;
-  created_at: string;
+  image_url?: string; // Fallback if needed
 };
 
 export type Institute = {
-  id: string;
+  url: string;
   name: string;
-  slug: string;
   logo: string;
   beschreibung: string;
   adresse: string;
   website: string;
-  facebook?: string;
-  instagram?: string;
-  youtube?: string;
-  location?: string; // Keep for compatibility if needed, but adresse is primary
-  created_at: string;
+  facebook: string;
+  instagram: string;
+  youtube: string;
 };
