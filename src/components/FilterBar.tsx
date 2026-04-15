@@ -14,10 +14,10 @@ interface FilterBarProps {
   setSelectedDegree?: (val: string) => void;
   selectedStudyForm?: string;
   setSelectedStudyForm?: (val: string) => void;
-  selectedLocation: string;
-  setSelectedLocation: (val: string) => void;
+  selectedLocation: string | string[];
+  setSelectedLocation: (val: any) => void;
   studyForms?: string[];
-  locations: string[];
+  locations: (string | { label: string; isHeader: boolean })[];
 }
 
 export const FilterBar = ({
@@ -38,19 +38,26 @@ export const FilterBar = ({
 }: FilterBarProps) => {
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
 
+  const isLocationSelected = (loc: string) => {
+    if (Array.isArray(selectedLocation)) {
+      return selectedLocation.includes(loc);
+    }
+    return selectedLocation === loc;
+  };
+
   const hasActiveFilters = 
     (selectedMainCategory !== 'Alle') || 
     (selectedSubCategory !== 'Alle') || 
     (selectedDegree !== 'Alle') || 
     (selectedStudyForm !== 'Alle') || 
-    selectedLocation !== 'Alle';
+    (Array.isArray(selectedLocation) ? (selectedLocation.length > 0 && !selectedLocation.includes('Alle')) : selectedLocation !== 'Alle');
 
   const clearFilters = () => {
     setSelectedMainCategory?.('Alle');
     setSelectedSubCategory?.('Alle');
     setSelectedDegree?.('Alle');
     setSelectedStudyForm?.('Alle');
-    setSelectedLocation('Alle');
+    setSelectedLocation(Array.isArray(selectedLocation) ? ['Alle'] : 'Alle');
     setSearchTerm('');
   };
 
@@ -213,24 +220,46 @@ export const FilterBar = ({
               )}
 
               {/* Location Filter */}
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
                   Standort
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {['Alle', ...locations].map((loc) => (
-                    <button
-                      key={loc}
-                      onClick={() => setSelectedLocation(loc)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                        selectedLocation === loc
-                          ? 'bg-primary/10 text-primary'
-                          : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
-                      }`}
-                    >
-                      {loc}
-                    </button>
-                  ))}
+                  <button
+                    onClick={() => setSelectedLocation(Array.isArray(selectedLocation) ? ['Alle'] : 'Alle')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                      isLocationSelected('Alle')
+                        ? 'bg-primary/10 text-primary'
+                        : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                    }`}
+                  >
+                    Alle
+                  </button>
+                  {locations.map((loc, idx) => {
+                    if (typeof loc === 'object' && loc.isHeader) {
+                      return (
+                        <div key={`header-${idx}`} className="w-full mt-4 mb-2 first:mt-0">
+                          <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em]">
+                            {loc.label}
+                          </span>
+                        </div>
+                      );
+                    }
+                    const locName = typeof loc === 'string' ? loc : loc.label;
+                    return (
+                      <button
+                        key={locName}
+                        onClick={() => setSelectedLocation(locName)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                          isLocationSelected(locName)
+                            ? 'bg-primary/10 text-primary'
+                            : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                        }`}
+                      >
+                        {locName}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
