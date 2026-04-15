@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Building2, Bookmark, Info, ArrowLeft, ArrowRight, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
-import { supabase, Course, Institute, isValidValue } from '../lib/supabase';
+import { supabase, Course, Institute, isValidValue, getSlug } from '../lib/supabase';
 import { CourseCard } from '../components/CourseCard';
 
 export const CourseDetail = () => {
@@ -133,7 +133,7 @@ export const CourseDetail = () => {
             >
               {institute && (
                 <Link 
-                  to={`/institute/${institute.url}`}
+                  to={`/institute/${getSlug(institute.url)}`}
                   className="flex items-start space-x-4 group"
                 >
                   <div className="mt-1">
@@ -224,17 +224,19 @@ export const CourseDetail = () => {
                     </div>
                   ))}
                 </div>
-                <div className="p-6 bg-gray-50/50">
-                  <a 
-                    href={course.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full bg-primary text-white py-4 rounded-xl font-bold text-center hover:bg-secondary transition-all shadow-lg shadow-primary/20 flex items-center justify-center"
-                  >
-                    Mehr Infos
-                    <ExternalLink className="w-4 h-4 ml-2" />
-                  </a>
-                </div>
+                {isValidValue(course.website_url) && (
+                  <div className="p-6 bg-gray-50/50">
+                    <a 
+                      href={course.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-primary text-white py-4 rounded-xl font-bold text-center hover:bg-secondary transition-all shadow-lg shadow-primary/20 flex items-center justify-center"
+                    >
+                      Mehr Infos
+                      <ExternalLink className="w-4 h-4 ml-2" />
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
