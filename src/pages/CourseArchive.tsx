@@ -39,12 +39,18 @@ export const CourseArchive = () => {
           throw new Error('Supabase ist nicht konfiguriert. Bitte hinterlegen Sie VITE_SUPABASE_URL und VITE_SUPABASE_ANON_KEY in den Einstellungen.');
         }
 
-        const { data, error: supabaseError } = await supabase.from('Studiengänge').select('*');
+        const { data, error: supabaseError, count } = await supabase
+          .from('Studiengänge')
+          .select('*', { count: 'exact' });
         
         if (supabaseError) throw supabaseError;
         
-        if (data) {
+        console.log(`Geladene Studiengänge: ${data?.length || 0} von insgesamt ${count || 'unbekannt'}`);
+        
+        if (data && data.length > 0) {
           setCourses(data);
+        } else {
+          console.warn('Keine Daten in Tabelle "Studiengänge" gefunden. Prüfen Sie die RLS-Policies.');
         }
       } catch (err) {
         console.error('Error fetching courses:', err);
@@ -135,8 +141,10 @@ export const CourseArchive = () => {
     // Random Sort
     // We use the fixed randomSeed to keep the sort stable during pagination
     return result.sort((a, b) => {
-      const hashA = Math.sin(a.url.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + randomSeed);
-      const hashB = Math.sin(b.url.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + randomSeed);
+      const urlA = a.url || '';
+      const urlB = b.url || '';
+      const hashA = Math.sin(urlA.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + randomSeed);
+      const hashB = Math.sin(urlB.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + randomSeed);
       return hashA - hashB;
     });
   }, [courses, searchTerm, selectedMainCategory, selectedSubCategory, selectedDegree, selectedStudyForm, selectedLocation, randomSeed]);
