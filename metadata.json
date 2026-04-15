@@ -1,0 +1,5 @@
+{
+  "name": "Bildungscluster Portal",
+  "description": "A modern education portal for courses, studies, and educational institutions, integrated with Supabase.",
+  "requestFramePermissions": []
+}
