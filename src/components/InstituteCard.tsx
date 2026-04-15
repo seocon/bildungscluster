@@ -50,7 +50,7 @@ export const InstituteCard = ({ institute }: InstituteCardProps) => {
         <span>{institute.adresse}</span>
       </div>
       <Link
-        to={`/institute/${institute.slug}`}
+        to={`/institute/${institute.url}`}
         className="flex items-center justify-center w-full py-3 rounded-xl bg-gray-50 text-gray-900 font-bold text-sm hover:bg-primary hover:text-white transition-all group/btn"
       >
         Zum Profil
