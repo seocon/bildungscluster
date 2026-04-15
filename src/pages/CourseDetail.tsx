@@ -23,23 +23,38 @@ export const CourseDetail = () => {
           throw new Error('Supabase ist nicht konfiguriert.');
         }
 
-        const { data: courseData, error: courseError } = await supabase
+        // Try exact match first
+        let { data: courseData, error: courseError } = await supabase
           .from('Studiengänge')
           .select('*')
           .eq('url', slug)
-          .single();
+          .maybeSingle();
+        
+        // If not found, try matching the end of the URL
+        if (!courseData) {
+          const { data: searchData, error: searchError } = await supabase
+            .from('Studiengänge')
+            .select('*')
+            .ilike('url', `%${slug}`);
+          
+          if (searchError) throw searchError;
+          if (searchData && searchData.length > 0) {
+            // Find the best match (exact slug at the end)
+            courseData = searchData.find(d => d.url.endsWith(slug) || d.url === slug) || searchData[0];
+          }
+        }
         
         if (courseError) throw courseError;
         
         if (courseData) {
           setCourse(courseData);
           
-          // Fetch Institute by name (assuming 'institut' field matches 'name' in Institute table)
+          // Fetch Institute by name
           const { data: instData } = await supabase
             .from('Institute')
             .select('*')
             .eq('name', courseData.institut)
-            .single();
+            .maybeSingle();
           if (instData) setInstitute(instData);
 
           // Fetch similar courses
