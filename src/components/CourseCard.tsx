@@ -1,5 +1,5 @@
 import React from 'react';
-import { supabase, Course, getSlug } from '../lib/supabase';
+import { supabase, Course, getSlug, isValidValue } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { MapPin, GraduationCap, ArrowRight, Building2 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -22,31 +22,37 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute top-4 left-4">
-            <span className="bg-white/90 backdrop-blur-sm text-primary text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
-              {course.kategorie}
-            </span>
-          </div>
+          {isValidValue(course.kategorie) && (
+            <div className="absolute top-4 left-4">
+              <span className="bg-white/90 backdrop-blur-sm text-primary text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
+                {course.kategorie.split(',')[0].trim()}
+              </span>
+            </div>
+          )}
         </div>
         <div className="p-6 flex flex-col flex-grow">
           <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-secondary transition-colors line-clamp-2">
             {course.titel}
           </h3>
           <div className="space-y-3">
-            {course.institut && (
+            {isValidValue(course.institut) && (
               <div className="flex items-center text-gray-400 text-xs">
                 <Building2 className="w-4 h-4 mr-2 text-primary" />
                 <span className="font-medium text-gray-700">{course.institut}</span>
               </div>
             )}
-            <div className="flex items-center text-gray-400 text-xs">
-              <MapPin className="w-4 h-4 mr-2 text-primary" />
-              <span>{course.standort}</span>
-            </div>
-            <div className="flex items-center text-gray-400 text-xs">
-              <GraduationCap className="w-4 h-4 mr-2 text-primary" />
-              <span>{course.abschluss}</span>
-            </div>
+            {isValidValue(course.standort) && (
+              <div className="flex items-center text-gray-400 text-xs">
+                <MapPin className="w-4 h-4 mr-2 text-primary" />
+                <span>{course.standort}</span>
+              </div>
+            )}
+            {isValidValue(course.abschluss) && (
+              <div className="flex items-center text-gray-400 text-xs">
+                <GraduationCap className="w-4 h-4 mr-2 text-primary" />
+                <span>{course.abschluss}</span>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>
