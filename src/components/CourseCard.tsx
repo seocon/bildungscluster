@@ -10,7 +10,7 @@ export interface CourseCardProps {
 
 export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   return (
-    <Link to={`/studien-kurse/${course.slug}`} className="block h-full">
+    <Link to={`/studien-kurse/${course.url}`} className="block h-full">
       <motion.div
         whileHover={{ y: -5 }}
         className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
@@ -33,10 +33,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             {course.titel}
           </h3>
           <div className="space-y-3">
-            {course.institut_name && (
+            {course.institut && (
               <div className="flex items-center text-gray-400 text-xs">
                 <Building2 className="w-4 h-4 mr-2 text-primary" />
-                <span className="font-medium text-gray-700">{course.institut_name}</span>
+                <span className="font-medium text-gray-700">{course.institut}</span>
               </div>
             )}
             <div className="flex items-center text-gray-400 text-xs">
