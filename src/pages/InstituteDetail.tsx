@@ -182,7 +182,7 @@ export const InstituteDetail = () => {
               <div className="bg-white rounded-3xl border border-gray-100 shadow-2xl shadow-primary/10 p-8">
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-8">Kontakt & Links</h4>
                 <div className="space-y-6">
-                  {institute.website && (
+                  {isValidValue(institute.website) && (
                     <a
                       href={institute.website}
                       target="_blank"
@@ -203,27 +203,33 @@ export const InstituteDetail = () => {
                   </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-gray-50">
-                  <h5 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Social Media</h5>
-                  <div className="flex space-x-4">
-                    {[
-                      { icon: Facebook, url: institute.facebook, label: 'Facebook' },
-                      { icon: Instagram, url: institute.instagram, label: 'Instagram' },
-                      { icon: Youtube, url: institute.youtube, label: 'YouTube' },
-                    ].filter(social => isValidValue(social.url)).map((social, i) => (
-                      <a
-                        key={i}
-                        href={social.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all"
-                        aria-label={social.label}
-                      >
-                        <social.icon className="w-5 h-5" />
-                      </a>
-                    ))}
+                {([
+                  { icon: Facebook, url: institute.facebook, label: 'Facebook' },
+                  { icon: Instagram, url: institute.instagram, label: 'Instagram' },
+                  { icon: Youtube, url: institute.youtube, label: 'YouTube' },
+                ].some(social => isValidValue(social.url))) && (
+                  <div className="mt-8 pt-8 border-t border-gray-50">
+                    <h5 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Social Media</h5>
+                    <div className="flex space-x-4">
+                      {[
+                        { icon: Facebook, url: institute.facebook, label: 'Facebook' },
+                        { icon: Instagram, url: institute.instagram, label: 'Instagram' },
+                        { icon: Youtube, url: institute.youtube, label: 'YouTube' },
+                      ].filter(social => isValidValue(social.url)).map((social, i) => (
+                        <a
+                          key={i}
+                          href={social.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all"
+                          aria-label={social.label}
+                        >
+                          <social.icon className="w-5 h-5" />
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
