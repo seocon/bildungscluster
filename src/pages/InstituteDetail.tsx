@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MOCK_INSTITUTES, MOCK_COURSES } from '../mockData';
-import { MapPin, Globe, Mail, Phone, ArrowLeft, ExternalLink, GraduationCap, Loader2, Facebook, Instagram, Youtube } from 'lucide-react';
+import { MapPin, Globe, Mail, Phone, ArrowLeft, ExternalLink, GraduationCap, Loader2, Facebook, Instagram, Youtube, AlertCircle } from 'lucide-react';
 import { CourseCard } from '../components/CourseCard';
 import { motion } from 'motion/react';
 import { supabase, Institute, Course } from '../lib/supabase';
@@ -11,37 +10,42 @@ export const InstituteDetail = () => {
   const [institute, setInstitute] = useState<Institute | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchInstitute = async () => {
       setLoading(true);
+      setError(null);
       
-      if (import.meta.env.VITE_SUPABASE_URL) {
-        const { data: instData } = await supabase
-          .from('institutes')
+      try {
+        if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+          throw new Error('Supabase ist nicht konfiguriert.');
+        }
+
+        const { data: instData, error: instError } = await supabase
+          .from('Institute')
           .select('*')
-          .eq('slug', slug)
+          .eq('url', slug)
           .single();
+        
+        if (instError) throw instError;
         
         if (instData) {
           setInstitute(instData);
           const { data: coursesData } = await supabase
-            .from('courses')
+            .from('Studiengänge')
             .select('*')
-            .eq('institut_id', instData.id);
+            .eq('institut', instData.name);
           if (coursesData) setCourses(coursesData);
-          setLoading(false);
-          return;
+        } else {
+          throw new Error('Institut nicht gefunden.');
         }
+      } catch (err) {
+        console.error('Error fetching institute:', err);
+        setError(err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten.');
+      } finally {
+        setLoading(false);
       }
-
-      const mockInst = MOCK_INSTITUTES.find((i) => i.slug === slug);
-      if (mockInst) {
-        setInstitute(mockInst);
-        const mockCourses = MOCK_COURSES.filter((c) => c.institut_id === mockInst.id);
-        setCourses(mockCourses);
-      }
-      setLoading(false);
     };
     fetchInstitute();
   }, [slug]);
@@ -50,6 +54,24 @@ export const InstituteDetail = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !institute) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="text-center py-20 bg-white rounded-3xl border border-red-100 max-w-2xl mx-auto px-8 shadow-xl">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-red-900 mb-2">Fehler beim Laden</h3>
+          <p className="text-red-700 mb-6">{error || 'Institut konnte nicht gefunden werden.'}</p>
+          <Link
+            to="/institute"
+            className="inline-block bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-secondary transition-colors"
+          >
+            Zurück zur Übersicht
+          </Link>
+        </div>
       </div>
     );
   }
@@ -128,7 +150,7 @@ export const InstituteDetail = () => {
               <h3 className="text-2xl font-bold text-gray-900 mb-8">Angebotene Studien & Kurse</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {courses.map((course) => (
-                  <CourseCard key={course.id} course={course} />
+                  <CourseCard key={course.url} course={course} />
                 ))}
               </div>
               {courses.length === 0 && (
