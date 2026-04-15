@@ -19,6 +19,12 @@ export const getSlug = (url: string) => {
   return url;
 };
 
+export const isValidValue = (value: any): boolean => {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string' && (value.trim() === '' || value.toUpperCase() === 'NULL')) return false;
+  return true;
+};
+
 export type Course = {
   url: string;
   titel: string;
