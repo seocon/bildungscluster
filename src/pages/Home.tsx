@@ -8,14 +8,14 @@ import { supabase, Course, Institute } from '../lib/supabase';
 
 const SLIDES = [
   {
-    image: '/public/Titelbild-BildungsCluster-Navigator.png',
+    image: '/Titelbild-BildungsCluster-Navigator.png',
     titleRed: 'DEIN NAVIGATOR',
     titleWhite: 'IM KURS-DSCHUNGEL',
     buttonText: 'Weiterbildung suchen',
     link: '/studien-kurse'
   },
   {
-    image: '/public/Titelbild-BildungsCluster-verbinden.png',
+    image: '/Titelbild-BildungsCluster-verbinden.png',
     titleRed: 'BILDUNGSCLUSTER',
     titleWhite: 'WIR VERBINDEN, UM ZU LERNEN',
     buttonText: 'Bildungsanbieter suchen',
@@ -240,7 +240,7 @@ export const Home = () => {
                 className="hover:opacity-80 transition-opacity"
               >
                 <img 
-                  src="public/logo-best.svg" 
+                  src="/logo-best.svg" 
                   alt="BeSt Logo" 
                   className="h-24 w-auto"
                   referrerPolicy="no-referrer"
