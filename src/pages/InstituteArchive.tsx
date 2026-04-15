@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { InstituteCard } from '../components/InstituteCard';
 import { FilterBar } from '../components/FilterBar';
 import { motion } from 'motion/react';
 import { School, Loader2, AlertCircle } from 'lucide-react';
-import { supabase, Institute } from '../lib/supabase';
+import { supabase, Institute, isValidValue } from '../lib/supabase';
 
 export const InstituteArchive = () => {
   const [institutes, setInstitutes] = useState<Institute[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('Alle');
+  const [selectedLocation, setSelectedLocation] = useState<string[]>(['Alle']);
 
   useEffect(() => {
     const fetchInstitutes = async () => {
@@ -45,13 +45,84 @@ export const InstituteArchive = () => {
     fetchInstitutes();
   }, []);
 
-  const locations = Array.from(new Set(institutes.map((i) => i.adresse))) as string[];
+  const handleLocationChange = (loc: string | string[]) => {
+    if (Array.isArray(loc)) {
+      setSelectedLocation(loc);
+      return;
+    }
+
+    if (loc === 'Alle') {
+      setSelectedLocation(['Alle']);
+      return;
+    }
+
+    setSelectedLocation(prev => {
+      const isAlreadySelected = prev.includes(loc);
+      let next;
+      if (isAlreadySelected) {
+        next = prev.filter(l => l !== loc);
+        if (next.length === 0) next = ['Alle'];
+      } else {
+        next = [...prev.filter(l => l !== 'Alle'), loc];
+      }
+      return next;
+    });
+  };
+
+  const extractLocationInfo = (address: string) => {
+    if (!address || address === 'NULL') return { city: '', country: '' };
+    const parts = address.split(',').map(p => p.trim());
+    if (parts.length >= 2) {
+      const country = parts[parts.length - 1];
+      const city = parts[parts.length - 2];
+      return { city, country };
+    }
+    return { city: address, country: '' };
+  };
+
+  const locations = useMemo(() => {
+    const cityMap = new Map<string, string>(); // city -> country
+    institutes.forEach(inst => {
+      if (isValidValue(inst.adresse)) {
+        const { city, country } = extractLocationInfo(inst.adresse);
+        if (city && !cityMap.has(city)) {
+          cityMap.set(city, country);
+        }
+      }
+    });
+
+    const sortedEntries = Array.from(cityMap.entries()).sort((a, b) => {
+      const countryCompare = a[1].localeCompare(b[1]);
+      if (countryCompare !== 0) return countryCompare;
+      return a[0].localeCompare(b[0]);
+    });
+
+    const result: (string | { label: string; isHeader: boolean })[] = [];
+    let currentCountry = '';
+
+    sortedEntries.forEach(([city, country]) => {
+      if (country && country !== currentCountry) {
+        currentCountry = country;
+        result.push({ label: country, isHeader: true });
+      }
+      result.push(city);
+    });
+
+    return result;
+  }, [institutes]);
 
   const filteredInstitutes = institutes.filter((inst) => {
     const matchesSearch =
-      inst.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inst.beschreibung.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLocation = selectedLocation === 'Alle' || inst.adresse === selectedLocation;
+      searchTerm === '' ||
+      (isValidValue(inst.name) && inst.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (isValidValue(inst.beschreibung) && inst.beschreibung.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    let matchesLocation = selectedLocation.includes('Alle');
+    if (!matchesLocation) {
+      const { city } = extractLocationInfo(inst.adresse);
+      matchesLocation = selectedLocation.includes(city);
+    }
+    
     return matchesSearch && matchesLocation;
   });
 
@@ -90,7 +161,7 @@ export const InstituteArchive = () => {
           setSearchTerm={setSearchTerm}
           locations={locations}
           selectedLocation={selectedLocation}
-          setSelectedLocation={setSelectedLocation}
+          setSelectedLocation={handleLocationChange}
         />
 
         {loading ? (
