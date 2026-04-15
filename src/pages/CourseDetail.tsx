@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MOCK_COURSES, MOCK_INSTITUTES } from '../mockData';
-import { Star, Building2, Bookmark, Info, ArrowLeft, ArrowRight, ExternalLink, Loader2 } from 'lucide-react';
+import { Building2, Bookmark, Info, ArrowLeft, ArrowRight, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { supabase, Course, Institute } from '../lib/supabase';
 import { CourseCard } from '../components/CourseCard';
@@ -12,55 +11,54 @@ export const CourseDetail = () => {
   const [institute, setInstitute] = useState<Institute | null>(null);
   const [similarCourses, setSimilarCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCourse = async () => {
       setLoading(true);
+      setError(null);
       
-      // Try Supabase first
-      if (import.meta.env.VITE_SUPABASE_URL) {
-        const { data: courseData } = await supabase
-          .from('courses')
+      try {
+        if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+          throw new Error('Supabase ist nicht konfiguriert.');
+        }
+
+        const { data: courseData, error: courseError } = await supabase
+          .from('Studiengänge')
           .select('*')
-          .eq('slug', slug)
+          .eq('url', slug)
           .single();
+        
+        if (courseError) throw courseError;
         
         if (courseData) {
           setCourse(courseData);
+          
+          // Fetch Institute by name (assuming 'institut' field matches 'name' in Institute table)
           const { data: instData } = await supabase
-            .from('institutes')
+            .from('Institute')
             .select('*')
-            .eq('id', courseData.institut_id)
+            .eq('name', courseData.institut)
             .single();
           if (instData) setInstitute(instData);
 
           // Fetch similar courses
           const { data: similarData } = await supabase
-            .from('courses')
+            .from('Studiengänge')
             .select('*')
             .eq('kategorie', courseData.kategorie)
-            .neq('id', courseData.id)
+            .neq('url', courseData.url)
             .limit(2);
           if (similarData) setSimilarCourses(similarData);
-
-          setLoading(false);
-          return;
+        } else {
+          throw new Error('Kurs nicht gefunden.');
         }
+      } catch (err) {
+        console.error('Error fetching course:', err);
+        setError(err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten.');
+      } finally {
+        setLoading(false);
       }
-
-      // Fallback to Mock
-      const mockCourse = MOCK_COURSES.find((c) => c.slug === slug);
-      if (mockCourse) {
-        setCourse(mockCourse);
-        const mockInst = MOCK_INSTITUTES.find((i) => i.id === mockCourse.institut_id);
-        if (mockInst) setInstitute(mockInst);
-        
-        const mockSimilar = MOCK_COURSES.filter(
-          (c) => c.kategorie === mockCourse.kategorie && c.id !== mockCourse.id
-        ).slice(0, 2);
-        setSimilarCourses(mockSimilar);
-      }
-      setLoading(false);
     };
     fetchCourse();
   }, [slug]);
@@ -73,12 +71,30 @@ export const CourseDetail = () => {
     );
   }
 
+  if (error || !course) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="text-center py-20 bg-white rounded-3xl border border-red-100 max-w-2xl mx-auto px-8 shadow-xl">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-red-900 mb-2">Fehler beim Laden</h3>
+          <p className="text-red-700 mb-6">{error || 'Kurs konnte nicht gefunden werden.'}</p>
+          <Link
+            to="/studien-kurse"
+            className="inline-block bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-secondary transition-colors"
+          >
+            Zurück zur Übersicht
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <div className="relative h-[50vh] min-h-[400px] overflow-hidden">
         <img
-          src={course.image_url}
+          src={course.image_url || 'https://images.unsplash.com/photo-1523050335392-9ae574d79993?auto=format&fit=crop&q=80&w=1200'}
           alt={course.titel}
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
@@ -102,7 +118,7 @@ export const CourseDetail = () => {
             >
               {institute && (
                 <Link 
-                  to={`/institute/${institute.slug}`}
+                  to={`/institute/${institute.url}`}
                   className="flex items-start space-x-4 group"
                 >
                   <div className="mt-1">
@@ -154,7 +170,7 @@ export const CourseDetail = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {similarCourses.length > 0 ? (
                   similarCourses.map((c) => (
-                    <CourseCard key={c.id} course={c} />
+                    <CourseCard key={c.url} course={c} />
                   ))
                 ) : (
                   <div className="text-gray-400 text-sm italic">Keine ähnlichen Kurse gefunden.</div>
@@ -176,14 +192,20 @@ export const CourseDetail = () => {
                     { label: 'Regelstudienzeit', value: course.regelstudienzeit },
                     { label: 'ECTS', value: course.ects },
                     { label: 'Studienform', value: course.studienform },
-                    { label: 'Standorte', value: course.standort },
-                  ].map((item, i) => (
+                    { label: 'Standort', value: course.standort },
+                    { label: 'Sprache', value: course.sprache },
+                    { label: 'Studienbeginn', value: course.studienbeginn },
+                    { label: 'Plätze', value: course.plaetze },
+                    { label: 'Gesamtkosten', value: course.gesamtkosten },
+                    { label: 'Kosten/Jahr', value: course.kosten_jahr },
+                    { label: 'Kosten/Monat', value: course.kosten_monat },
+                  ].filter(item => item.value).map((item, i) => (
                     <div 
                       key={i} 
                       className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors"
                     >
                       <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{item.label}</span>
-                      <span className="text-sm font-bold text-gray-900 text-right ml-4">{item.value || 'N/A'}</span>
+                      <span className="text-sm font-bold text-gray-900 text-right ml-4">{item.value}</span>
                     </div>
                   ))}
                 </div>
