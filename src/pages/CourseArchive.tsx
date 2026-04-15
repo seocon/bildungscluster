@@ -4,7 +4,7 @@ import { CourseCard } from '../components/CourseCard';
 import { FilterBar } from '../components/FilterBar';
 import { motion, AnimatePresence } from 'motion/react';
 import { GraduationCap, Loader2, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
-import { supabase, Course } from '../lib/supabase';
+import { supabase, Course, isValidValue } from '../lib/supabase';
 import { CATEGORY_HIERARCHY, DEGREE_MAPPING } from '../constants/categories';
 
 const ITEMS_PER_PAGE = 9;
@@ -66,7 +66,7 @@ export const CourseArchive = () => {
   const studyForms = useMemo(() => {
     const forms = new Set<string>();
     courses.forEach(c => {
-      if (c.studienform) {
+      if (isValidValue(c.studienform)) {
         c.studienform.split(',').forEach(f => forms.add(f.trim()));
       }
     });
@@ -76,7 +76,7 @@ export const CourseArchive = () => {
   const locations = useMemo(() => {
     const locs = new Set<string>();
     courses.forEach(c => {
-      if (c.standort) {
+      if (isValidValue(c.standort)) {
         c.standort.split(',').forEach(l => locs.add(l.trim()));
       }
     });
@@ -89,19 +89,19 @@ export const CourseArchive = () => {
       // Search Term
       const matchesSearch =
         searchTerm === '' ||
-        course.titel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.beschreibung_generiert.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.kategorie.toLowerCase().includes(searchTerm.toLowerCase());
+        (isValidValue(course.titel) && course.titel.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (isValidValue(course.beschreibung_generiert) && course.beschreibung_generiert.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (isValidValue(course.kategorie) && course.kategorie.toLowerCase().includes(searchTerm.toLowerCase()));
 
       // Main Category & Sub Category
       let matchesCategory = true;
       if (selectedMainCategory !== 'Alle') {
         const subCats = CATEGORY_HIERARCHY[selectedMainCategory] || [];
         if (selectedSubCategory !== 'Alle') {
-          matchesCategory = course.kategorie === selectedSubCategory;
+          matchesCategory = isValidValue(course.kategorie) && course.kategorie === selectedSubCategory;
         } else {
           // If only main category selected, match any subcategory within it
-          matchesCategory = subCats.includes(course.kategorie) || course.kategorie === selectedMainCategory;
+          matchesCategory = isValidValue(course.kategorie) && (subCats.includes(course.kategorie) || course.kategorie === selectedMainCategory);
         }
       }
 
@@ -109,14 +109,12 @@ export const CourseArchive = () => {
       let matchesDegree = true;
       if (selectedDegree !== 'Alle') {
         const keywords = DEGREE_MAPPING[selectedDegree] || [];
-        const abschlussLower = (course.abschluss || '').toLowerCase();
+        const abschlussLower = (isValidValue(course.abschluss) ? course.abschluss : '').toLowerCase();
         
         matchesDegree = keywords.some(kw => {
           if (selectedDegree === 'Zertifikat' || selectedDegree === 'Akademie') {
             return abschlussLower.includes(kw.toLowerCase());
           }
-          // For others, we might want more specific matching or word boundaries
-          // but the request says "belong to" so we'll check if any keyword is present
           return abschlussLower.includes(kw.toLowerCase());
         });
       }
@@ -124,14 +122,14 @@ export const CourseArchive = () => {
       // Study Form Filter (Comma separated)
       let matchesStudyForm = true;
       if (selectedStudyForm !== 'Alle') {
-        const forms = (course.studienform || '').split(',').map(f => f.trim());
+        const forms = (isValidValue(course.studienform) ? course.studienform : '').split(',').map(f => f.trim());
         matchesStudyForm = forms.includes(selectedStudyForm);
       }
 
       // Location Filter (Comma separated)
       let matchesLocation = true;
       if (selectedLocation !== 'Alle') {
-        const locs = (course.standort || '').split(',').map(l => l.trim());
+        const locs = (isValidValue(course.standort) ? course.standort : '').split(',').map(l => l.trim());
         matchesLocation = locs.includes(selectedLocation);
       }
 
@@ -163,6 +161,33 @@ export const CourseArchive = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const showMax = 3; // Number of pages to show around current page
+
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+
+      if (currentPage <= 3) {
+        end = 4;
+      } else if (currentPage >= totalPages - 2) {
+        start = totalPages - 3;
+      }
+
+      if (start > 2) pages.push('...');
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (end < totalPages - 1) pages.push('...');
+      
+      pages.push(totalPages);
+    }
+    return pages;
   };
 
   return (
@@ -230,7 +255,7 @@ export const CourseArchive = () => {
           </div>
         ) : paginatedCourses.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
               <AnimatePresence mode="popLayout">
                 {paginatedCourses.map((course, index) => (
                   <motion.div
@@ -249,38 +274,51 @@ export const CourseArchive = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-xl bg-white border border-gray-200 text-gray-600 disabled:opacity-50 hover:bg-gray-50 transition-colors"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                
-                <div className="flex space-x-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`w-10 h-10 rounded-xl font-bold text-sm transition-all ${
-                        currentPage === page
-                          ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                          : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
+              <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="flex items-center px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 disabled:opacity-50 hover:bg-gray-50 transition-all font-bold text-sm"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Vorherige
+                  </button>
+                  
+                  <div className="hidden md:flex items-center space-x-1">
+                    {getPageNumbers().map((page, i) => (
+                      page === '...' ? (
+                        <span key={`dots-${i}`} className="w-10 text-center text-gray-400">...</span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(Number(page))}
+                          className={`w-10 h-10 rounded-xl font-bold text-sm transition-all ${
+                            currentPage === page
+                              ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                              : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    ))}
+                  </div>
 
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded-xl bg-white border border-gray-200 text-gray-600 disabled:opacity-50 hover:bg-gray-50 transition-colors"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
+                  {/* Mobile Page Indicator */}
+                  <div className="md:hidden flex items-center px-4 font-bold text-sm text-gray-600">
+                    Seite {currentPage} von {totalPages}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 disabled:opacity-50 hover:bg-gray-50 transition-all font-bold text-sm"
+                  >
+                    Nächste
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </button>
+                </div>
               </div>
             )}
           </>
