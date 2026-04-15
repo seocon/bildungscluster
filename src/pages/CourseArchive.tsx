@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MOCK_COURSES } from '../mockData';
 import { CourseCard } from '../components/CourseCard';
 import { FilterBar } from '../components/FilterBar';
 import { motion, AnimatePresence } from 'motion/react';
-import { GraduationCap, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { GraduationCap, Loader2, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { supabase, Course } from '../lib/supabase';
 import { CATEGORY_HIERARCHY, DEGREE_MAPPING } from '../constants/categories';
 
@@ -12,8 +11,9 @@ const ITEMS_PER_PAGE = 9;
 
 export const CourseArchive = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [courses, setCourses] = useState<Course[]>(MOCK_COURSES);
-  const [loading, setLoading] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Filter States
@@ -31,13 +31,27 @@ export const CourseArchive = () => {
 
   useEffect(() => {
     const fetchCourses = async () => {
-      if (!import.meta.env.VITE_SUPABASE_URL) return;
       setLoading(true);
-      const { data, error } = await supabase.from('courses').select('*');
-      if (data && !error) {
-        setCourses(data);
+      setError(null);
+      
+      try {
+        if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+          throw new Error('Supabase ist nicht konfiguriert. Bitte hinterlegen Sie VITE_SUPABASE_URL und VITE_SUPABASE_ANON_KEY in den Einstellungen.');
+        }
+
+        const { data, error: supabaseError } = await supabase.from('Studiengänge').select('*');
+        
+        if (supabaseError) throw supabaseError;
+        
+        if (data) {
+          setCourses(data);
+        }
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+        setError(err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten.');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchCourses();
   }, []);
@@ -121,8 +135,8 @@ export const CourseArchive = () => {
     // Random Sort
     // We use the fixed randomSeed to keep the sort stable during pagination
     return result.sort((a, b) => {
-      const hashA = Math.sin(a.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + randomSeed);
-      const hashB = Math.sin(b.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + randomSeed);
+      const hashA = Math.sin(a.url.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + randomSeed);
+      const hashB = Math.sin(b.url.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) + randomSeed);
       return hashA - hashB;
     });
   }, [courses, searchTerm, selectedMainCategory, selectedSubCategory, selectedDegree, selectedStudyForm, selectedLocation, randomSeed]);
@@ -194,13 +208,25 @@ export const CourseArchive = () => {
           <div className="flex justify-center py-20">
             <Loader2 className="w-12 h-12 text-primary animate-spin" />
           </div>
+        ) : error ? (
+          <div className="text-center py-20 bg-red-50 rounded-3xl border border-red-100 max-w-2xl mx-auto px-8">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-red-900 mb-2">Verbindungsfehler</h3>
+            <p className="text-red-700 mb-6">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-red-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-700 transition-colors"
+            >
+              Erneut versuchen
+            </button>
+          </div>
         ) : paginatedCourses.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               <AnimatePresence mode="popLayout">
                 {paginatedCourses.map((course, index) => (
                   <motion.div
-                    key={course.id}
+                    key={course.url}
                     layout
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
