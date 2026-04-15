@@ -1,5 +1,5 @@
 import React from 'react';
-import { Course } from '../lib/supabase';
+import { supabase, Course, getSlug } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { MapPin, GraduationCap, ArrowRight, Building2 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -10,7 +10,7 @@ export interface CourseCardProps {
 
 export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   return (
-    <Link to={`/studien-kurse/${course.url}`} className="block h-full">
+    <Link to={`/studien-kurse/${getSlug(course.url)}`} className="block h-full">
       <motion.div
         whileHover={{ y: -5 }}
         className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
