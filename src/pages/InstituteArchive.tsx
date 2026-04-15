@@ -22,12 +22,18 @@ export const InstituteArchive = () => {
           throw new Error('Supabase ist nicht konfiguriert.');
         }
 
-        const { data, error: supabaseError } = await supabase.from('Institute').select('*');
+        const { data, error: supabaseError, count } = await supabase
+          .from('Institute')
+          .select('*', { count: 'exact' });
         
         if (supabaseError) throw supabaseError;
         
-        if (data) {
+        console.log(`Geladene Institute: ${data?.length || 0} von insgesamt ${count || 'unbekannt'}`);
+        
+        if (data && data.length > 0) {
           setInstitutes(data);
+        } else {
+          console.warn('Keine Daten in Tabelle "Institute" gefunden. Prüfen Sie die RLS-Policies.');
         }
       } catch (err) {
         console.error('Error fetching institutes:', err);
