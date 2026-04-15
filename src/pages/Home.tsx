@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MOCK_COURSES, MOCK_INSTITUTES } from '../mockData';
 import { CourseCard } from '../components/CourseCard';
 import { InstituteCard } from '../components/InstituteCard';
 import { motion, AnimatePresence } from 'motion/react';
@@ -9,14 +8,14 @@ import { supabase, Course, Institute } from '../lib/supabase';
 
 const SLIDES = [
   {
-    image: '/Titelbild-BildungsCluster-Navigator.png',
+    image: '/public/Titelbild-BildungsCluster-Navigator.png',
     titleRed: 'DEIN NAVIGATOR',
     titleWhite: 'IM KURS-DSCHUNGEL',
     buttonText: 'Weiterbildung suchen',
     link: '/studien-kurse'
   },
   {
-    image: '/Titelbild-BildungsCluster-verbinden.png',
+    image: '/public/Titelbild-BildungsCluster-verbinden.png',
     titleRed: 'BILDUNGSCLUSTER',
     titleWhite: 'WIR VERBINDEN, UM ZU LERNEN',
     buttonText: 'Bildungsanbieter suchen',
@@ -25,8 +24,9 @@ const SLIDES = [
 ];
 
 export const Home = () => {
-  const [courses, setCourses] = useState<Course[]>(MOCK_COURSES);
-  const [institutes, setInstitutes] = useState<Institute[]>(MOCK_INSTITUTES);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [institutes, setInstitutes] = useState<Institute[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -38,13 +38,22 @@ export const Home = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!import.meta.env.VITE_SUPABASE_URL) return;
-      
-      const { data: coursesData } = await supabase.from('courses').select('*').limit(6);
-      if (coursesData) setCourses(coursesData);
+      setLoading(true);
+      try {
+        if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+          return; // Silent fail for home page, just show empty or loading
+        }
+        
+        const { data: coursesData } = await supabase.from('Studiengänge').select('*').limit(6);
+        if (coursesData) setCourses(coursesData);
 
-      const { data: institutesData } = await supabase.from('institutes').select('*').limit(6);
-      if (institutesData) setInstitutes(institutesData);
+        const { data: institutesData } = await supabase.from('Institute').select('*').limit(6);
+        if (institutesData) setInstitutes(institutesData);
+      } catch (err) {
+        console.error('Error fetching home data:', err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, []);
@@ -231,7 +240,7 @@ export const Home = () => {
                 className="hover:opacity-80 transition-opacity"
               >
                 <img 
-                  src="/logo-best.svg" 
+                  src="public/logo-best.svg" 
                   alt="BeSt Logo" 
                   className="h-24 w-auto"
                   referrerPolicy="no-referrer"
@@ -304,7 +313,7 @@ export const Home = () => {
         <div className="relative">
           <div className="flex overflow-x-auto pb-12 px-4 sm:px-6 lg:px-8 gap-8 no-scrollbar snap-x">
             {courses.map((course) => (
-              <div key={course.id} className="w-[350px] shrink-0 snap-start">
+              <div key={course.url} className="w-[350px] shrink-0 snap-start">
                 <CourseCard course={course} />
               </div>
             ))}
@@ -336,7 +345,7 @@ export const Home = () => {
         <div className="relative">
           <div className="flex overflow-x-auto pb-12 px-4 sm:px-6 lg:px-8 gap-8 no-scrollbar snap-x">
             {institutes.map((inst) => (
-              <div key={inst.id} className="w-[350px] shrink-0 snap-start">
+              <div key={inst.url} className="w-[350px] shrink-0 snap-start">
                 <InstituteCard institute={inst} />
               </div>
             ))}
