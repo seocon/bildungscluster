@@ -22,11 +22,26 @@ export const InstituteDetail = () => {
           throw new Error('Supabase ist nicht konfiguriert.');
         }
 
-        const { data: instData, error: instError } = await supabase
+        // Try exact match first
+        let { data: instData, error: instError } = await supabase
           .from('Institute')
           .select('*')
           .eq('url', slug)
-          .single();
+          .maybeSingle();
+        
+        // If not found, try matching the end of the URL
+        if (!instData) {
+          const { data: searchData, error: searchError } = await supabase
+            .from('Institute')
+            .select('*')
+            .ilike('url', `%${slug}`);
+          
+          if (searchError) throw searchError;
+          if (searchData && searchData.length > 0) {
+            // Find the best match
+            instData = searchData.find(d => d.url.endsWith(slug) || d.url === slug) || searchData[0];
+          }
+        }
         
         if (instError) throw instError;
         
