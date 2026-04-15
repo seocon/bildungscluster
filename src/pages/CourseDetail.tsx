@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Building2, Bookmark, Info, ArrowLeft, ArrowRight, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
-import { supabase, Course, Institute } from '../lib/supabase';
+import { supabase, Course, Institute, isValidValue } from '../lib/supabase';
 import { CourseCard } from '../components/CourseCard';
 
 export const CourseDetail = () => {
@@ -174,7 +174,7 @@ export const CourseDetail = () => {
               </div>
               <div className="p-8 md:p-12">
                 <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                  {course.beschreibung_generiert}
+                  {isValidValue(course.beschreibung_generiert) ? course.beschreibung_generiert : 'Keine Beschreibung verfügbar.'}
                 </p>
               </div>
             </section>
@@ -214,7 +214,7 @@ export const CourseDetail = () => {
                     { label: 'Gesamtkosten', value: course.gesamtkosten },
                     { label: 'Kosten/Jahr', value: course.kosten_jahr },
                     { label: 'Kosten/Monat', value: course.kosten_monat },
-                  ].filter(item => item.value).map((item, i) => (
+                  ].filter(item => isValidValue(item.value)).map((item, i) => (
                     <div 
                       key={i} 
                       className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors"
