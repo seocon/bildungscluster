@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { MapPin, Globe, Mail, Phone, ArrowLeft, ExternalLink, GraduationCap, Loader2, Facebook, Instagram, Youtube, AlertCircle } from 'lucide-react';
 import { CourseCard } from '../components/CourseCard';
 import { motion } from 'motion/react';
-import { supabase, Institute, Course } from '../lib/supabase';
+import { supabase, Institute, Course, isValidValue } from '../lib/supabase';
 
 export const InstituteDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -157,7 +157,7 @@ export const InstituteDetail = () => {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Über das Institut</h2>
               <p className="text-lg text-gray-600 leading-relaxed mb-8">
-                {institute.beschreibung}
+                {isValidValue(institute.beschreibung) ? institute.beschreibung : 'Keine Beschreibung verfügbar.'}
               </p>
             </section>
 
@@ -210,7 +210,7 @@ export const InstituteDetail = () => {
                       { icon: Facebook, url: institute.facebook, label: 'Facebook' },
                       { icon: Instagram, url: institute.instagram, label: 'Instagram' },
                       { icon: Youtube, url: institute.youtube, label: 'YouTube' },
-                    ].filter(social => social.url).map((social, i) => (
+                    ].filter(social => isValidValue(social.url)).map((social, i) => (
                       <a
                         key={i}
                         href={social.url}
