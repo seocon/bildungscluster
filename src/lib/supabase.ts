@@ -5,6 +5,20 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+export const getSlug = (url: string) => {
+  if (!url) return '';
+  // If it's a full URL, extract the last part
+  if (url.includes('://') || url.includes('www.')) {
+    try {
+      const parts = url.split('/').filter(Boolean);
+      return parts[parts.length - 1];
+    } catch (e) {
+      return url;
+    }
+  }
+  return url;
+};
+
 export type Course = {
   url: string;
   titel: string;
