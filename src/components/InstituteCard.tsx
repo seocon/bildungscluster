@@ -1,4 +1,4 @@
-import { Institute, getSlug } from '../lib/supabase';
+import { Institute, getSlug, isValidValue } from '../lib/supabase';
 import { Link } from 'react-router-dom';
 import { MapPin, ExternalLink, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -16,7 +16,7 @@ export const InstituteCard = ({ institute }: InstituteCardProps) => {
       >
         <div className="flex items-start justify-between mb-6">
           <div className="w-16 h-16 bg-gray-50 rounded-xl p-2 flex items-center justify-center border border-gray-100">
-            {institute.logo ? (
+            {isValidValue(institute.logo) ? (
               <img
                 src={institute.logo}
                 alt={institute.name}
@@ -36,13 +36,17 @@ export const InstituteCard = ({ institute }: InstituteCardProps) => {
         <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-secondary transition-colors">
           {institute.name}
         </h3>
-        <p className="text-gray-500 text-sm mb-6 line-clamp-3 flex-grow">
-          {institute.beschreibung}
-        </p>
-        <div className="flex items-center text-gray-400 text-xs mt-auto">
-          <MapPin className="w-4 h-4 mr-2 text-primary" />
-          <span>{institute.adresse}</span>
-        </div>
+        {isValidValue(institute.beschreibung) && (
+          <p className="text-gray-500 text-sm mb-6 line-clamp-3 flex-grow">
+            {institute.beschreibung}
+          </p>
+        )}
+        {isValidValue(institute.adresse) && (
+          <div className="flex items-center text-gray-400 text-xs mt-auto">
+            <MapPin className="w-4 h-4 mr-2 text-primary" />
+            <span>{institute.adresse}</span>
+          </div>
+        )}
       </motion.div>
     </Link>
   );
