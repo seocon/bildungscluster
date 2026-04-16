@@ -12,6 +12,7 @@ const ITEMS_PER_PAGE = 9;
 export const CourseArchive = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [institutePictures, setInstitutePictures] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,7 +31,7 @@ export const CourseArchive = () => {
   const [randomSeed] = useState(() => Math.random());
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
       
@@ -39,27 +40,41 @@ export const CourseArchive = () => {
           throw new Error('Supabase ist nicht konfiguriert. Bitte hinterlegen Sie VITE_SUPABASE_URL und VITE_SUPABASE_ANON_KEY in den Einstellungen.');
         }
 
-        const { data, error: supabaseError, count } = await supabase
+        // Fetch Courses
+        const { data: coursesData, error: coursesError } = await supabase
           .from('Studiengänge')
-          .select('*', { count: 'exact' });
+          .select('*');
         
-        if (supabaseError) throw supabaseError;
+        if (coursesError) throw coursesError;
         
-        console.log(`Geladene Studiengänge: ${data?.length || 0} von insgesamt ${count || 'unbekannt'}`);
+        // Fetch Institutes for pictures
+        const { data: instData, error: instError } = await supabase
+          .from('Institute')
+          .select('name, picture_url');
         
-        if (data && data.length > 0) {
-          setCourses(data);
+        if (instError) throw instError;
+
+        const picMap: Record<string, string> = {};
+        instData?.forEach(inst => {
+          if (isValidValue(inst.picture_url)) {
+            picMap[inst.name] = inst.picture_url;
+          }
+        });
+        setInstitutePictures(picMap);
+        
+        if (coursesData && coursesData.length > 0) {
+          setCourses(coursesData);
         } else {
-          console.warn('Keine Daten in Tabelle "Studiengänge" gefunden. Prüfen Sie die RLS-Policies.');
+          console.warn('Keine Daten in Tabelle "Studiengänge" gefunden.');
         }
       } catch (err) {
-        console.error('Error fetching courses:', err);
+        console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten.');
       } finally {
         setLoading(false);
       }
     };
-    fetchCourses();
+    fetchData();
   }, []);
 
   // Dynamic Filter Options
@@ -266,7 +281,10 @@ export const CourseArchive = () => {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <CourseCard course={course} />
+                    <CourseCard 
+                      course={course} 
+                      institutePicture={institutePictures[course.institut]}
+                    />
                   </motion.div>
                 ))}
               </AnimatePresence>
