@@ -7,24 +7,20 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const getSlug = (url: string) => {
   if (!url) return '';
-  // If it's a full URL, extract hostname and last part to ensure uniqueness
-  if (url.includes('://') || url.includes('www.')) {
-    try {
+  try {
+    // Handle full URLs
+    if (url.includes('://') || url.includes('www.')) {
       const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
-      const hostname = urlObj.hostname.replace('www.', '').split('.')[0];
       const parts = urlObj.pathname.split('/').filter(Boolean);
-      const lastPart = parts[parts.length - 1];
-      
-      if (lastPart && lastPart !== hostname) {
-        return `${hostname}-${lastPart}`;
-      }
-      return hostname;
-    } catch (e) {
-      const parts = url.split('/').filter(Boolean);
-      return parts[parts.length - 1];
+      return parts[parts.length - 1] || urlObj.hostname.replace('www.', '').split('.')[0];
     }
+    // Handle relative paths or simple strings
+    const parts = url.split('/').filter(Boolean);
+    return parts[parts.length - 1] || url;
+  } catch (e) {
+    const parts = url.split('/').filter(Boolean);
+    return parts[parts.length - 1] || url;
   }
-  return url;
 };
 
 export const isValidValue = (value: any): boolean => {
