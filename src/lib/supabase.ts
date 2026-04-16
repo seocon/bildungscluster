@@ -7,13 +7,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const getSlug = (url: string) => {
   if (!url) return '';
-  // If it's a full URL, extract the last part
+  // If it's a full URL, extract hostname and last part to ensure uniqueness
   if (url.includes('://') || url.includes('www.')) {
     try {
+      const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+      const hostname = urlObj.hostname.replace('www.', '').split('.')[0];
+      const parts = urlObj.pathname.split('/').filter(Boolean);
+      const lastPart = parts[parts.length - 1];
+      
+      if (lastPart && lastPart !== hostname) {
+        return `${hostname}-${lastPart}`;
+      }
+      return hostname;
+    } catch (e) {
       const parts = url.split('/').filter(Boolean);
       return parts[parts.length - 1];
-    } catch (e) {
-      return url;
     }
   }
   return url;
