@@ -31,16 +31,21 @@ export const CourseDetail = () => {
           .eq('url', slug)
           .maybeSingle();
         
-        // If not found, try matching the end of the URL
+        // If not found, try matching parts of the URL
         if (!courseData) {
+          const searchPattern = `%${slug.split('-').join('%')}%`;
           const { data: searchData, error: searchError } = await supabase
             .from('Studiengänge')
             .select('*')
-            .ilike('url', `%${slug}`);
+            .ilike('url', searchPattern);
           
           if (searchError) throw searchError;
           if (searchData && searchData.length > 0) {
-            courseData = searchData.find(d => d.url.endsWith(slug) || d.url === slug) || searchData[0];
+            const slugParts = slug.split('-');
+            courseData = searchData.find(d => {
+              const urlLower = d.url.toLowerCase();
+              return slugParts.every(part => urlLower.includes(part.toLowerCase()));
+            }) || searchData[0];
           }
         }
         
@@ -129,7 +134,7 @@ export const CourseDetail = () => {
       {/* Hero Section */}
       <div className="relative h-[50vh] min-h-[400px] overflow-hidden">
         <img
-          src={institute && isValidValue(institute.picture_url) ? institute.picture_url : '/platzhalter-institut.jpg'}
+          src={institute && isValidValue(institute.picture_url) ? institute.picture_url : '/platzhalterbild-institut.jpg'}
           alt={course.titel}
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
