@@ -29,17 +29,22 @@ export const InstituteDetail = () => {
           .eq('url', slug)
           .maybeSingle();
         
-        // If not found, try matching the end of the URL
+        // If not found, try matching parts of the URL
         if (!instData) {
+          const searchPattern = `%${slug.split('-').join('%')}%`;
           const { data: searchData, error: searchError } = await supabase
             .from('Institute')
             .select('*')
-            .ilike('url', `%${slug}`);
+            .ilike('url', searchPattern);
           
           if (searchError) throw searchError;
           if (searchData && searchData.length > 0) {
-            // Find the best match
-            instData = searchData.find(d => d.url.endsWith(slug) || d.url === slug) || searchData[0];
+            // Find the best match by checking if all slug parts are in the URL
+            const slugParts = slug.split('-');
+            instData = searchData.find(d => {
+              const urlLower = d.url.toLowerCase();
+              return slugParts.every(part => urlLower.includes(part.toLowerCase()));
+            }) || searchData[0];
           }
         }
         
@@ -97,7 +102,7 @@ export const InstituteDetail = () => {
       <div className="relative bg-gray-900 pt-32 pb-16 overflow-hidden min-h-[400px] flex items-end">
         <div className="absolute inset-0">
           <img
-            src={isValidValue(institute.picture_url) ? institute.picture_url : '/platzhalter-institut.jpg'}
+            src={isValidValue(institute.picture_url) ? institute.picture_url : '/platzhalterbild-institut.jpg'}
             alt={institute.name}
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
