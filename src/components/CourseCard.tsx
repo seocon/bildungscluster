@@ -6,9 +6,10 @@ import { motion } from 'motion/react';
 
 export interface CourseCardProps {
   course: Course;
+  institutePicture?: string;
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
+export const CourseCard: React.FC<CourseCardProps> = ({ course, institutePicture }) => {
   return (
     <Link to={`/studien-kurse/${getSlug(course.url)}`} className="block h-full">
       <motion.div
@@ -17,7 +18,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
       >
         <div className="relative h-48 overflow-hidden">
           <img
-            src={course.image_url || 'https://images.unsplash.com/photo-1523050335392-9ae574d79993?auto=format&fit=crop&q=80&w=800'}
+            src={institutePicture || '/platzhalter-institut.jpg'}
             alt={course.titel}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             referrerPolicy="no-referrer"
