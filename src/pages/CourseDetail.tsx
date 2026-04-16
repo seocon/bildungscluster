@@ -33,18 +33,18 @@ export const CourseDetail = () => {
         
         // If not found, try matching parts of the URL
         if (!courseData) {
-          const searchPattern = `%${slug.split('-').join('%')}%`;
           const { data: searchData, error: searchError } = await supabase
             .from('Studiengänge')
             .select('*')
-            .ilike('url', searchPattern);
+            .ilike('url', `%${slug}%`);
           
           if (searchError) throw searchError;
           if (searchData && searchData.length > 0) {
-            const slugParts = slug.split('-');
+            // Find the best match by checking if the last part of the URL matches the slug exactly
             courseData = searchData.find(d => {
-              const urlLower = d.url.toLowerCase();
-              return slugParts.every(part => urlLower.includes(part.toLowerCase()));
+              const urlParts = d.url.split('/').filter(Boolean);
+              const lastPart = urlParts[urlParts.length - 1];
+              return lastPart && lastPart.toLowerCase() === slug.toLowerCase();
             }) || searchData[0];
           }
         }
