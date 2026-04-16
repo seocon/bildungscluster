@@ -94,13 +94,18 @@ export const InstituteDetail = () => {
   return (
     <div className="min-h-screen bg-gray-50/30">
       {/* Header */}
-      <div className="relative bg-primary pt-32 pb-16 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-secondary rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+      <div className="relative bg-gray-900 pt-32 pb-16 overflow-hidden min-h-[400px] flex items-end">
+        <div className="absolute inset-0">
+          <img
+            src={isValidValue(institute.picture_url) ? institute.picture_url : '/platzhalter-institut.jpg'}
+            alt={institute.name}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -165,7 +170,11 @@ export const InstituteDetail = () => {
               <h3 className="text-2xl font-bold text-gray-900 mb-8">Angebotene Studien & Kurse</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {courses.map((course) => (
-                  <CourseCard key={course.url} course={course} />
+                  <CourseCard 
+                    key={course.url} 
+                    course={course} 
+                    institutePicture={institute.picture_url}
+                  />
                 ))}
               </div>
               {courses.length === 0 && (
