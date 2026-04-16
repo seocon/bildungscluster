@@ -31,19 +31,18 @@ export const InstituteDetail = () => {
         
         // If not found, try matching parts of the URL
         if (!instData) {
-          const searchPattern = `%${slug.split('-').join('%')}%`;
           const { data: searchData, error: searchError } = await supabase
             .from('Institute')
             .select('*')
-            .ilike('url', searchPattern);
+            .ilike('url', `%${slug}%`);
           
           if (searchError) throw searchError;
           if (searchData && searchData.length > 0) {
-            // Find the best match by checking if all slug parts are in the URL
-            const slugParts = slug.split('-');
+            // Find the best match by checking if the last part of the URL matches the slug exactly
             instData = searchData.find(d => {
-              const urlLower = d.url.toLowerCase();
-              return slugParts.every(part => urlLower.includes(part.toLowerCase()));
+              const urlParts = d.url.split('/').filter(Boolean);
+              const lastPart = urlParts[urlParts.length - 1];
+              return lastPart && lastPart.toLowerCase() === slug.toLowerCase();
             }) || searchData[0];
           }
         }
