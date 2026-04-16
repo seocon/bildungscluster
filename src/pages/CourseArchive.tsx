@@ -7,7 +7,7 @@ import { GraduationCap, Loader2, ChevronLeft, ChevronRight, AlertCircle } from '
 import { supabase, Course, isValidValue } from '../lib/supabase';
 import { CATEGORY_HIERARCHY, DEGREE_MAPPING } from '../constants/categories';
 
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 48;
 
 export const CourseArchive = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -88,14 +88,11 @@ export const CourseArchive = () => {
     return Array.from(forms).sort();
   }, [courses]);
 
-  const locations = useMemo(() => {
-    const locs = new Set<string>();
-    courses.forEach(c => {
-      if (isValidValue(c.standort)) {
-        c.standort.split(',').forEach(l => locs.add(l.trim()));
-      }
-    });
-    return Array.from(locs).sort();
+  const structuredLocations = useMemo(() => {
+    const hasOnline = courses.some(c => 
+      isValidValue(c.standort) && c.standort.toLowerCase().includes('online')
+    );
+    return hasOnline ? ['Online'] : [];
   }, [courses]);
 
   // Filtering Logic
@@ -141,11 +138,15 @@ export const CourseArchive = () => {
         matchesStudyForm = forms.includes(selectedStudyForm);
       }
 
-      // Location Filter (Comma separated)
+      // Location Filter
       let matchesLocation = true;
       if (selectedLocation !== 'Alle') {
-        const locs = (isValidValue(course.standort) ? course.standort : '').split(',').map(l => l.trim());
-        matchesLocation = locs.includes(selectedLocation);
+        if (selectedLocation === 'Online') {
+          matchesLocation = isValidValue(course.standort) && course.standort.toLowerCase().includes('online');
+        } else {
+          const locs = (isValidValue(course.standort) ? course.standort : '').split(',').map(l => l.trim());
+          matchesLocation = locs.includes(selectedLocation);
+        }
       }
 
       return matchesSearch && matchesCategory && matchesDegree && matchesStudyForm && matchesLocation;
@@ -249,7 +250,7 @@ export const CourseArchive = () => {
           selectedLocation={selectedLocation}
           setSelectedLocation={setSelectedLocation}
           studyForms={studyForms}
-          locations={locations}
+          locations={structuredLocations}
         />
 
         {loading ? (
