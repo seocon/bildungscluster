@@ -56,4 +56,5 @@ export type Institute = {
   facebook: string;
   instagram: string;
   youtube: string;
+  picture_url: string;
 };
