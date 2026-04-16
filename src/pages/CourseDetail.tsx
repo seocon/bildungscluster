@@ -10,6 +10,7 @@ export const CourseDetail = () => {
   const [course, setCourse] = useState<Course | null>(null);
   const [institute, setInstitute] = useState<Institute | null>(null);
   const [similarCourses, setSimilarCourses] = useState<Course[]>([]);
+  const [similarInstPics, setSimilarInstPics] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +40,6 @@ export const CourseDetail = () => {
           
           if (searchError) throw searchError;
           if (searchData && searchData.length > 0) {
-            // Find the best match (exact slug at the end)
             courseData = searchData.find(d => d.url.endsWith(slug) || d.url === slug) || searchData[0];
           }
         }
@@ -64,7 +64,27 @@ export const CourseDetail = () => {
             .eq('kategorie', courseData.kategorie)
             .neq('url', courseData.url)
             .limit(2);
-          if (similarData) setSimilarCourses(similarData);
+          
+          if (similarData) {
+            setSimilarCourses(similarData);
+            
+            // Fetch pictures for similar courses' institutes
+            const instNames = Array.from(new Set(similarData.map(c => c.institut)));
+            if (instNames.length > 0) {
+              const { data: picsData } = await supabase
+                .from('Institute')
+                .select('name, picture_url')
+                .in('name', instNames);
+              
+              const picMap: Record<string, string> = {};
+              picsData?.forEach(p => {
+                if (isValidValue(p.picture_url)) {
+                  picMap[p.name] = p.picture_url;
+                }
+              });
+              setSimilarInstPics(picMap);
+            }
+          }
         } else {
           throw new Error('Kurs nicht gefunden.');
         }
@@ -109,7 +129,7 @@ export const CourseDetail = () => {
       {/* Hero Section */}
       <div className="relative h-[50vh] min-h-[400px] overflow-hidden">
         <img
-          src={course.image_url || 'https://images.unsplash.com/photo-1523050335392-9ae574d79993?auto=format&fit=crop&q=80&w=1200'}
+          src={institute && isValidValue(institute.picture_url) ? institute.picture_url : '/platzhalter-institut.jpg'}
           alt={course.titel}
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
@@ -185,7 +205,11 @@ export const CourseDetail = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {similarCourses.length > 0 ? (
                   similarCourses.map((c) => (
-                    <CourseCard key={c.url} course={c} />
+                    <CourseCard 
+                      key={c.url} 
+                      course={c} 
+                      institutePicture={similarInstPics[c.institut]}
+                    />
                   ))
                 ) : (
                   <div className="text-gray-400 text-sm italic">Keine ähnlichen Kurse gefunden.</div>
