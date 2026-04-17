@@ -4,6 +4,7 @@ import { Building2, Bookmark, Info, ArrowLeft, ArrowRight, ExternalLink, Loader2
 import { motion } from 'motion/react';
 import { supabase, Course, Institute, isValidValue, getSlug } from '../lib/supabase';
 import { CourseCard } from '../components/CourseCard';
+import { CATEGORY_HIERARCHY } from '../constants/categories';
 
 export const CourseDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -170,20 +171,43 @@ export const CourseDetail = () => {
                   </div>
                 </Link>
               )}
-              <Link 
-                to={`/studien-kurse?category=${course.kategorie}`}
-                className="flex items-start space-x-4 group"
-              >
+              <div className="flex items-start space-x-4">
                 <div className="mt-1">
-                  <Bookmark className="w-6 h-6 text-white/50 group-hover:text-primary transition-colors" />
+                  <Bookmark className="w-6 h-6 text-white/50" />
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">Kategorie</div>
-                  <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">
-                    {course.kategorie}
+                  <div className="flex flex-wrap gap-2">
+                    {(course.kategorie || '').split(',').map((cat, idx) => {
+                      const trimmedCat = cat.trim();
+                      if (!trimmedCat) return null;
+                      
+                      // Find main category if it exists in hierarchy
+                      let mainCat = 'Alle';
+                      Object.entries(CATEGORY_HIERARCHY).forEach(([main, subs]) => {
+                        if (main === trimmedCat || subs.includes(trimmedCat)) {
+                          mainCat = main;
+                        }
+                      });
+
+                      const isMainCat = Object.keys(CATEGORY_HIERARCHY).includes(trimmedCat);
+                      const queryParams = isMainCat 
+                        ? `mainCategory=${encodeURIComponent(trimmedCat)}`
+                        : `mainCategory=${encodeURIComponent(mainCat)}&subCategory=${encodeURIComponent(trimmedCat)}`;
+
+                      return (
+                        <Link 
+                          key={idx}
+                          to={`/studien-kurse?${queryParams}`}
+                          className="text-sm font-bold text-white hover:text-primary transition-colors hover:underline underline-offset-4"
+                        >
+                          {trimmedCat}{idx < (course.kategorie || '').split(',').length - 1 ? '' : ''}
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
-              </Link>
+              </div>
             </motion.div>
           </div>
         </div>
