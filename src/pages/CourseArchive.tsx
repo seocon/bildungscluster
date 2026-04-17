@@ -23,6 +23,40 @@ export const CourseArchive = () => {
   const [selectedDegree, setSelectedDegree] = useState(searchParams.get('degree') || 'Alle');
   const [selectedStudyForm, setSelectedStudyForm] = useState(searchParams.get('studyForm') || 'Alle');
   const [selectedLocation, setSelectedLocation] = useState(searchParams.get('location') || 'Alle');
+
+  // Sync state with search params
+  useEffect(() => {
+    const mainCat = searchParams.get('mainCategory');
+    const subCat = searchParams.get('subCategory');
+    const degree = searchParams.get('degree');
+    const studyForm = searchParams.get('studyForm');
+    const location = searchParams.get('location');
+
+    if (mainCat) setSelectedMainCategory(mainCat);
+    if (subCat) setSelectedSubCategory(subCat);
+    if (degree) setSelectedDegree(degree);
+    if (studyForm) setSelectedStudyForm(studyForm);
+    if (location) setSelectedLocation(location);
+  }, [searchParams]);
+
+  // Push state changes to search params
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (selectedMainCategory !== 'Alle') params.mainCategory = selectedMainCategory;
+    if (selectedSubCategory !== 'Alle') params.subCategory = selectedSubCategory;
+    if (selectedDegree !== 'Alle') params.degree = selectedDegree;
+    if (selectedStudyForm !== 'Alle') params.studyForm = selectedStudyForm;
+    if (selectedLocation !== 'Alle') params.location = selectedLocation;
+    
+    // Only update if something changed to avoid unnecessary rerenders
+    const currentParams = Object.fromEntries(searchParams.entries());
+    const hasChanged = Object.keys(params).length !== Object.keys(currentParams).length || 
+                      Object.keys(params).some(k => params[k] !== currentParams[k]);
+    
+    if (hasChanged) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [selectedMainCategory, selectedSubCategory, selectedDegree, selectedStudyForm, selectedLocation, setSearchParams]);
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -109,11 +143,13 @@ export const CourseArchive = () => {
       let matchesCategory = true;
       if (selectedMainCategory !== 'Alle') {
         const subCats = CATEGORY_HIERARCHY[selectedMainCategory] || [];
+        const courseCats = (course.kategorie || '').split(',').map(c => c.trim());
+        
         if (selectedSubCategory !== 'Alle') {
-          matchesCategory = isValidValue(course.kategorie) && course.kategorie === selectedSubCategory;
+          matchesCategory = courseCats.includes(selectedSubCategory);
         } else {
-          // If only main category selected, match any subcategory within it
-          matchesCategory = isValidValue(course.kategorie) && (subCats.includes(course.kategorie) || course.kategorie === selectedMainCategory);
+          // If only main category selected, match any subcategory within it or the main category itself
+          matchesCategory = courseCats.some(cat => subCats.includes(cat) || cat === selectedMainCategory);
         }
       }
 
