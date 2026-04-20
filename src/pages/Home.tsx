@@ -313,67 +313,71 @@ export const Home = () => {
 
       {/* Featured Courses Slider (Horizontal Scroll) */}
       <section className="py-32 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 flex items-end justify-between">
-          <div>
-            <div className="flex items-center space-x-2 text-primary font-bold text-sm uppercase tracking-widest mb-4">
-              <GraduationCap className="w-5 h-5 text-secondary" />
-              <span>Top Angebote</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
-              Beliebte <span className="text-primary">Studien & Kurse</span>
-            </h2>
-          </div>
-          <Link
-            to="/studien-kurse"
-            className="hidden md:flex items-center text-primary font-bold hover:text-secondary transition-colors"
-          >
-            Alle ansehen
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Link>
-        </div>
-
-        <div className="relative">
-          <div className="flex overflow-x-auto pb-12 px-4 sm:px-6 lg:px-8 gap-8 no-scrollbar snap-x">
-            {courses.map((course) => (
-              <div key={course.url} className="w-[350px] shrink-0 snap-start">
-                <CourseCard 
-                  course={course} 
-                  institutePicture={courseInstitutePictures[course.institut]}
-                />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-16 flex items-end justify-between">
+            <div>
+              <div className="flex items-center space-x-2 text-primary font-bold text-sm uppercase tracking-widest mb-4">
+                <GraduationCap className="w-5 h-5 text-secondary" />
+                <span>Top Angebote</span>
               </div>
-            ))}
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
+                Beliebte <span className="text-primary">Studien & Kurse</span>
+              </h2>
+            </div>
+            <Link
+              to="/studien-kurse"
+              className="hidden md:flex items-center text-primary font-bold hover:text-secondary transition-colors"
+            >
+              Alle ansehen
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+          </div>
+
+          <div className="relative">
+            <div className="flex overflow-x-auto pb-12 gap-8 no-scrollbar snap-x">
+              {courses.map((course) => (
+                <div key={course.url} className="w-[350px] shrink-0 snap-start">
+                  <CourseCard 
+                    course={course} 
+                    institutePicture={courseInstitutePictures[course.institut]}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Featured Institutes Slider */}
-      <section className="py-32 bg-gray-50/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 flex items-end justify-between">
-          <div>
-            <div className="flex items-center space-x-2 text-primary font-bold text-sm uppercase tracking-widest mb-4">
-              <School className="w-5 h-5 text-secondary" />
-              <span>Partner</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
-              Führende <span className="text-primary">Institute</span>
-            </h2>
-          </div>
-          <Link
-            to="/institute"
-            className="hidden md:flex items-center text-primary font-bold hover:text-secondary transition-colors"
-          >
-            Alle ansehen
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Link>
-        </div>
-
-        <div className="relative">
-          <div className="flex overflow-x-auto pb-12 px-4 sm:px-6 lg:px-8 gap-8 no-scrollbar snap-x">
-            {institutes.map((inst) => (
-              <div key={inst.url} className="w-[350px] shrink-0 snap-start">
-                <InstituteCard institute={inst} />
+      <section className="py-32 bg-gray-50/50 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-16 flex items-end justify-between">
+            <div>
+              <div className="flex items-center space-x-2 text-primary font-bold text-sm uppercase tracking-widest mb-4">
+                <School className="w-5 h-5 text-secondary" />
+                <span>Partner</span>
               </div>
-            ))}
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
+                Führende <span className="text-primary">Institute</span>
+              </h2>
+            </div>
+            <Link
+              to="/institute"
+              className="hidden md:flex items-center text-primary font-bold hover:text-secondary transition-colors"
+            >
+              Alle ansehen
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+          </div>
+
+          <div className="relative">
+            <div className="flex overflow-x-auto pb-12 gap-8 no-scrollbar snap-x">
+              {institutes.map((inst) => (
+                <div key={inst.url} className="w-[350px] shrink-0 snap-start">
+                  <InstituteCard institute={inst} />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
