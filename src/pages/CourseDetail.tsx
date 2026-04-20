@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Building2, Bookmark, Info, ArrowLeft, ArrowRight, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
-import { supabase, Course, Institute, isValidValue, getSlug } from '../lib/supabase';
+import { supabase, Course, Institute, isValidValue, getSlug, createCourseSlug } from '../lib/supabase';
 import { CourseCard } from '../components/CourseCard';
 import { CATEGORY_HIERARCHY } from '../constants/categories';
 
@@ -25,28 +25,45 @@ export const CourseDetail = () => {
           throw new Error('Supabase ist nicht konfiguriert.');
         }
 
-        // Try exact match first
+        // 1. Try exact match on URL first (legacy/direct)
         let { data: courseData, error: courseError } = await supabase
           .from('Studiengänge')
           .select('*')
           .eq('url', slug)
           .maybeSingle();
         
-        // If not found, try matching parts of the URL
-        if (!courseData) {
+        // 2. If not found, search in database then match with createCourseSlug
+        if (!courseData && slug) {
+          // Optimization: Search for courses where titel is part of the slug
+          // We split by dash and take the first few parts as a hint
+          const slugParts = slug.split('-');
+          const titleHint = slugParts.slice(0, 2).join('%');
+          
           const { data: searchData, error: searchError } = await supabase
             .from('Studiengänge')
             .select('*')
-            .ilike('url', `%${slug}%`);
+            .ilike('titel', `%${titleHint}%`);
           
           if (searchError) throw searchError;
+          
           if (searchData && searchData.length > 0) {
-            // Find the best match by checking if the last part of the URL matches the slug exactly
-            courseData = searchData.find(d => {
-              const urlParts = d.url.split('/').filter(Boolean);
-              const lastPart = urlParts[urlParts.length - 1];
-              return lastPart && lastPart.toLowerCase() === slug.toLowerCase();
-            }) || searchData[0];
+            courseData = searchData.find(d => createCourseSlug(d) === slug) || null;
+          }
+
+          // 3. Fallback: Check last part of URL (old logic)
+          if (!courseData) {
+            const { data: fallbackData } = await supabase
+              .from('Studiengänge')
+              .select('*')
+              .ilike('url', `%${slug}%`);
+            
+            if (fallbackData && fallbackData.length > 0) {
+              courseData = fallbackData.find(d => {
+                const urlParts = d.url.split('/').filter(Boolean);
+                const lastPart = urlParts[urlParts.length - 1];
+                return lastPart && lastPart.toLowerCase() === slug.toLowerCase();
+              }) || fallbackData[0];
+            }
           }
         }
         
@@ -157,19 +174,31 @@ export const CourseDetail = () => {
               transition={{ delay: 0.1 }}
               className="flex flex-wrap gap-12"
             >
-              {institute && (
-                <Link 
-                  to={`/institute/${getSlug(institute.url)}`}
-                  className="flex items-start space-x-4 group"
-                >
-                  <div className="mt-1">
-                    <Building2 className="w-6 h-6 text-white/50 group-hover:text-primary transition-colors" />
+              {isValidValue(course.institut) && (
+                institute ? (
+                  <Link 
+                    to={`/institute/${getSlug(institute.url)}`}
+                    className="flex items-start space-x-4 group"
+                  >
+                    <div className="mt-1">
+                      <Building2 className="w-6 h-6 text-white/50 group-hover:text-primary transition-colors" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">Institut</div>
+                      <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">{course.institut}</div>
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="flex items-start space-x-4">
+                    <div className="mt-1">
+                      <Building2 className="w-6 h-6 text-white/50" />
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">Institut</div>
+                      <div className="text-sm font-bold text-white">{course.institut}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-1">Institut</div>
-                    <div className="text-sm font-bold text-white group-hover:text-primary transition-colors">{institute.name}</div>
-                  </div>
-                </Link>
+                )
               )}
               <div className="flex items-start space-x-4">
                 <div className="mt-1">
