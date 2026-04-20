@@ -8,14 +8,14 @@ import { supabase, Course, Institute } from '../lib/supabase';
 
 const SLIDES = [
   {
-    image: '/Titelbild-BildungsCluster-Navigator.png',
+    image: '/public/Titelbild-BildungsCluster-Navigator.png',
     titleRed: 'DEIN NAVIGATOR',
     titleWhite: 'IM KURS-DSCHUNGEL',
     buttonText: 'Weiterbildung suchen',
     link: '/studien-kurse'
   },
   {
-    image: '/Titelbild-BildungsCluster-verbinden.png',
+    image: '/public/Titelbild-BildungsCluster-verbinden.png',
     titleRed: 'BILDUNGSCLUSTER',
     titleWhite: 'WIR VERBINDEN, UM ZU LERNEN',
     buttonText: 'Bildungsanbieter suchen',
@@ -26,6 +26,7 @@ const SLIDES = [
 export const Home = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [institutes, setInstitutes] = useState<Institute[]>([]);
+  const [courseInstitutePictures, setCourseInstitutePictures] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -46,7 +47,26 @@ export const Home = () => {
         
         const { data: coursesData, error: cErr } = await supabase.from('Studiengänge').select('*').limit(6);
         if (cErr) console.error('Home Courses Error:', cErr);
-        if (coursesData) setCourses(coursesData);
+        if (coursesData) {
+          setCourses(coursesData);
+          
+          // Fetch Institute pictures for these courses
+          const instNames = Array.from(new Set(coursesData.map(c => c.institut)));
+          if (instNames.length > 0) {
+            const { data: instPicsData } = await supabase
+              .from('Institute')
+              .select('name, picture_url')
+              .in('name', instNames);
+            
+            const picMap: Record<string, string> = {};
+            instPicsData?.forEach(p => {
+              if (p.picture_url && p.picture_url !== 'NULL') {
+                picMap[p.name] = p.picture_url;
+              }
+            });
+            setCourseInstitutePictures(picMap);
+          }
+        }
 
         const { data: institutesData, error: iErr } = await supabase.from('Institute').select('*').limit(6);
         if (iErr) console.error('Home Institutes Error:', iErr);
@@ -242,7 +262,7 @@ export const Home = () => {
                 className="hover:opacity-80 transition-opacity"
               >
                 <img 
-                  src="/logo-best.svg" 
+                  src="public/logo-best.svg" 
                   alt="BeSt Logo" 
                   className="h-24 w-auto"
                   referrerPolicy="no-referrer"
@@ -316,7 +336,10 @@ export const Home = () => {
           <div className="flex overflow-x-auto pb-12 px-4 sm:px-6 lg:px-8 gap-8 no-scrollbar snap-x">
             {courses.map((course) => (
               <div key={course.url} className="w-[350px] shrink-0 snap-start">
-                <CourseCard course={course} />
+                <CourseCard 
+                  course={course} 
+                  institutePicture={courseInstitutePictures[course.institut]}
+                />
               </div>
             ))}
           </div>
