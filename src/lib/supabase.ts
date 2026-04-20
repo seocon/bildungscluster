@@ -23,6 +23,26 @@ export const getSlug = (url: string) => {
   }
 };
 
+export const createCourseSlug = (course: Course) => {
+  const slugify = (text: string) => 
+    text.toString().toLowerCase()
+      .replace(/\s+/g, '-')           // Replace spaces with -
+      .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+      .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+      .replace(/^-+/, '')             // Trim - from start of text
+      .replace(/-+$/, '');            // Trim - from end of text
+
+  const titleSlug = slugify(course.titel || '');
+  const degreeSlug = slugify(course.abschluss || '');
+  const instSlug = slugify(course.institut || '');
+
+  let res = titleSlug;
+  if (degreeSlug) res += `-${degreeSlug}`;
+  if (instSlug) res += `-${instSlug}`;
+  
+  return res || getSlug(course.url);
+};
+
 export const isValidValue = (value: any): boolean => {
   if (value === null || value === undefined) return false;
   if (typeof value === 'string' && (value.trim() === '' || value.toUpperCase() === 'NULL' || value.trim() === '/')) return false;
