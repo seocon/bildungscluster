@@ -225,13 +225,17 @@ export const CourseDetail = () => {
                         : `mainCategory=${encodeURIComponent(mainCat)}&subCategory=${encodeURIComponent(trimmedCat)}`;
 
                       return (
-                        <Link 
-                          key={idx}
-                          to={`/studien-kurse?${queryParams}`}
-                          className="text-sm font-bold text-white hover:text-primary transition-colors hover:underline underline-offset-4"
-                        >
-                          {trimmedCat}{idx < (course.kategorie || '').split(',').length - 1 ? '' : ''}
-                        </Link>
+                        <React.Fragment key={idx}>
+                          <Link 
+                            to={`/studien-kurse?${queryParams}`}
+                            className="text-sm font-bold text-white hover:text-primary transition-colors hover:underline underline-offset-4"
+                          >
+                            {trimmedCat}
+                          </Link>
+                          {idx < (course.kategorie || '').split(',').length - 1 && (
+                            <span className="text-white/50 font-bold mx-1">,</span>
+                          )}
+                        </React.Fragment>
                       );
                     })}
                   </div>
