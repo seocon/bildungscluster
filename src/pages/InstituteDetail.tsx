@@ -9,6 +9,7 @@ export const InstituteDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [institute, setInstitute] = useState<Institute | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [visibleCourses, setVisibleCourses] = useState(6);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -127,7 +128,7 @@ export const InstituteDetail = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="w-32 h-32 bg-white rounded-3xl p-4 flex items-center justify-center border border-white/20 shadow-2xl"
+              className="w-32 h-32 bg-[#f0f4f8] rounded-3xl p-4 flex items-center justify-center border border-white/20 shadow-2xl"
             >
               <img
                 src={institute.logo}
@@ -173,7 +174,7 @@ export const InstituteDetail = () => {
             <section className="mb-12">
               <h3 className="text-2xl font-bold text-gray-900 mb-8">Angebotene Studien & Kurse</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {courses.map((course) => (
+                {courses.slice(0, visibleCourses).map((course) => (
                   <CourseCard 
                     key={course.url} 
                     course={course} 
@@ -181,6 +182,24 @@ export const InstituteDetail = () => {
                   />
                 ))}
               </div>
+              
+              {courses.length > visibleCourses && (
+                <div className="mt-12 text-center">
+                  <button
+                    onClick={() => setVisibleCourses(prev => prev + 6)}
+                    className="inline-flex items-center px-8 py-4 bg-white border-2 border-primary text-primary font-bold rounded-2xl hover:bg-primary hover:text-white transition-all duration-300 shadow-lg shadow-primary/10"
+                  >
+                    Mehr laden
+                    <motion.div
+                      animate={{ y: [0, 5, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <ArrowLeft className="w-5 h-5 ml-2 -rotate-90" />
+                    </motion.div>
+                  </button>
+                </div>
+              )}
+
               {courses.length === 0 && (
                 <div className="text-center py-12 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
                   <p className="text-gray-500">Aktuell sind keine Kurse für dieses Institut gelistet.</p>
