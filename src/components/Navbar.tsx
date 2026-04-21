@@ -47,18 +47,23 @@ export const Navbar = () => {
           </div>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`text-sm font-bold transition-colors hover:text-secondary ${
-                  location.pathname === link.path ? 'text-primary' : textColor
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
+          <div className="hidden md:flex items-center space-x-2">
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.path;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
+                    isActive 
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                      : `${textColor} hover:text-primary hover:bg-primary/5`
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Mobile menu button */}
@@ -83,17 +88,24 @@ export const Navbar = () => {
             className="md:hidden bg-white border-b border-gray-100 overflow-hidden"
           >
             <div className="px-4 pt-2 pb-6 space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center space-x-3 px-3 py-4 text-base font-medium text-gray-600 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
-                >
-                  <link.icon className="w-5 h-5" />
-                  <span>{link.name}</span>
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.path;
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center space-x-3 px-4 py-4 text-base font-bold rounded-xl transition-all ${
+                      isActive
+                        ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                        : 'text-gray-600 hover:text-primary hover:bg-primary/5'
+                    }`}
+                  >
+                    <link.icon className="w-5 h-5" />
+                    <span>{link.name}</span>
+                  </Link>
+                );
+              })}
             </div>
           </motion.div>
         )}
