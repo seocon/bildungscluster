@@ -15,7 +15,7 @@ export const InstituteCard = ({ institute }: InstituteCardProps) => {
         className="group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
       >
         <div className="flex items-start justify-between mb-6">
-          <div className="w-16 h-16 bg-gray-50 rounded-xl p-2 flex items-center justify-center border border-gray-100">
+          <div className="w-16 h-16 bg-[#f0f4f8] rounded-xl p-2 flex items-center justify-center border border-gray-100 shadow-sm">
             {isValidValue(institute.logo) ? (
               <img
                 src={institute.logo}
