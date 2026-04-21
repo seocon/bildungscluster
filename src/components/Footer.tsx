@@ -128,9 +128,9 @@ export const Footer = () => {
             </div>
             
             <div className="flex space-x-6">
-              <a href="#" className="text-gray-300 hover:text-white transition-colors"><Facebook className="w-5 h-5" /></a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors"><Twitter className="w-5 h-5" /></a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors"><Instagram className="w-5 h-5" /></a>
+              <a href="https://www.facebook.com/BildungsCluster" className="text-gray-300 hover:text-white transition-colors"><Facebook className="w-5 h-5" /></a>
+              <a href="https://www.twitter.com/BildungsCluster" className="text-gray-300 hover:text-white transition-colors"><Twitter className="w-5 h-5" /></a>
+              <a href="https://www.instagram.com/bildungscluster/" className="text-gray-300 hover:text-white transition-colors"><Instagram className="w-5 h-5" /></a>
             </div>
           </div>
         </div>
