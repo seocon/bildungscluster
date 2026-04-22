@@ -108,7 +108,7 @@ export const Contact = () => {
               className="h-full min-h-[600px] bg-gray-100 rounded-3xl overflow-hidden shadow-xl"
             >
               <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m13!1d2658.08447814467!2d14.31037067713833!3d48.3110515792377!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47739796e6e6e6e7%3A0x6b7447444397e59!2sHafenstra%C3%9Fe%2047-51%2C%204020%20Linz!5e0!3m2!1sde!2sat!4v1713778500000!5m2!1sde!2sat" 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d663.2938741082975!2d14.30683182863733!3d48.318706898196474!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4773983caa1d2c1f%3A0x1c6ead35d6aa2fc2!2sHafenstra%C3%9Fe%2047-51%2C%204020%20Linz!5e0!3m2!1sde!2sat!4v1776844319647!5m2!1sde!2sat" 
                 width="100%" 
                 height="100%" 
                 style={{ border: 0 }} 
