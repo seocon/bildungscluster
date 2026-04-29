@@ -382,42 +382,7 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* Newsletter Section */}
-      <section className="py-24 bg-[#e5e7eb]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-            <div>
-              <h2 className="text-2xl font-bold text-[#003d5b] mb-8 uppercase tracking-wider">
-                In Kontakt bleiben
-              </h2>
-              <p className="text-gray-600 leading-relaxed max-w-md">
-                Bleiben Sie mit uns rund um das Thema Weiterbildung und Fortbildung in Kontakt. Wir versorgen Sie mit aktuellen News.
-              </p>
-            </div>
-            
-            <div className="space-y-6">
-              <div>
-                <label className="block text-xs font-bold text-[#003d5b] uppercase tracking-widest mb-4">
-                  E-Mail-Adresse
-                </label>
-                <div className="flex flex-col sm:flex-row gap-0">
-                  <input 
-                    type="email" 
-                    placeholder="E-Mail-Adresse eingeben"
-                    className="flex-grow px-6 py-4 bg-white border-none focus:ring-2 focus:ring-[#003d5b] outline-none text-gray-900"
-                  />
-                  <button className="bg-[#1e2433] text-white px-10 py-4 font-bold uppercase tracking-widest hover:bg-[#003d5b] transition-colors">
-                    Abonnieren
-                  </button>
-                </div>
-              </div>
-              <p className="text-[11px] text-gray-500 leading-relaxed">
-                Mit der Nutzung dieses Formulars erklären Sie Sich mit der Speicherung und Verarbeitung Ihrer Daten gemäß unserer Datenschutzbestimmungen einverstanden.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      
     </div>
   );
 };
